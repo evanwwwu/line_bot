@@ -1,0 +1,29 @@
+{
+    "elementName": "MinT",
+    "time": [
+        {
+            "startTime": "2018-05-17 12:00:00",
+            "endTime": "2018-05-17 18:00:00",
+            "parameter": {
+                "parameterName": "30",
+                "parameterUnit": "C"
+            }
+        },
+        {
+            "startTime": "2018-05-17 18:00:00",
+            "endTime": "2018-05-18 06:00:00",
+            "parameter": {
+                "parameterName": "25",
+                "parameterUnit": "C"
+            }
+        },
+        {
+            "startTime": "2018-05-18 06:00:00",
+            "endTime": "2018-05-18 18:00:00",
+            "parameter": {
+                "parameterName": "25",
+                "parameterUnit": "C"
+            }
+        }
+    ]
+}
