@@ -41,10 +41,17 @@ bot.on('message', function (event) {
         event.reply(data);
     }
     if (/^nba/.test(text.toLowerCase())) {
-        let search_date = text.sp
-        search_nba().then((data) => {
-            
-        });
+        let date_type = "";
+        if (typeof text.split(/\s+/)[1] !== "undefined") {
+            let search_date = text.split(/\s+/)[1].split("-");
+            let date_format = new Date(search_date[0] + "-" + search_date[1] + "-" + search_date[2]);
+            if (date_format.getFullYear() == search_date[0] && (date_format.getMonth() + 1) == search_date[1] && date_format.getDate() == date_format[2]) {
+                date_type = text.split(/\s+/)[1];
+            }
+        }
+        search_nba(date_type).then((data) => {
+            event.reply(data);
+        });   
     }
 });
 app.set('port', (process.env.PORT || 5002));

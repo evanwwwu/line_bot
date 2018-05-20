@@ -10,29 +10,34 @@ function search_hot(type) {
     return new Promise((resolve) => {
         if (type == "18+") {
             uri = "https://www.jkforum.net/forum-535-1.html";
-        }
-        else {
+        } else {
             uri = "https://www.jkforum.net/type-736-1938.html";
         }
         let j = request.jar();
         let cookie = request.cookie("AKb4_2132_agree18=1");
         j.setCookie(cookie, uri);
-        request({url:uri,jar:j}, function (err, res, body) {
+        request({
+            url: uri,
+            jar: j
+        }, function (err, res, body) {
             try {
                 const $ = cheerio.load(body);
                 const hrefs = $("#waterfall li h3 a");
                 let r = Math.round(Math.random() * (hrefs.length - 1));
                 r = r % 2 === 1 ? r - 1 : r;
                 const href = hrefs[r].attribs.href;
-                
-                request({url:`https://www.jkforum.net/${href}`,jar:j}, function (err2, res2, body2) {
+
+                request({
+                    url: `https://www.jkforum.net/${href}`,
+                    jar: j
+                }, function (err2, res2, body2) {
                     const $ = cheerio.load(body2);
                     const srcs = $("#postlist td.t_f img");
                     const r = Math.round(Math.random() * (srcs.length - 1));
                     const src = srcs[r].attribs.zoomfile;
                     const result = {
                         type: "image",
-                        originalContentUrl:src,
+                        originalContentUrl: src,
                         previewImageUrl: src
                     };
                     resolve(result);
@@ -89,6 +94,31 @@ function check_ball() {
         })
 }
 
-function search_nba(date) {
-    request(`http://tw.global.nba.com/scores/#!/${date}`)
+function search_nba(search_date) {
+    return new Promise((resolve) => {
+
+        let msg = "";
+        if (search_date == "") {
+            let now = new Date();
+            search_date = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+        }
+        request(`http://tw.global.nba.com/scores/#!/${search_date}`, function (erro, res, body) {
+            const $ = cheerio.load(body);
+            // final-game-table-wrapper
+            // sib-list
+            let games = $(".sib-list-team-game-snapshot");
+            if (games.length > 0) {
+                let game_time = "",
+                    teams = [],
+                    fraction = [];
+                game_time = games.find(".snapshot-header .info span").eq(0).text();
+                teams[0] = games.find(".team-abbrv").eq(0).find('a').text();
+                teams[1] = games.find(".team-abbrv").eq(1).find('a').text();
+                
+            } else {
+                msg = "今天沒有比賽喔！"
+            }
+        })
+        resolve(msg);
+    })
 }
