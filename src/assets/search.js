@@ -5,7 +5,7 @@ const
 
 module.exports.search_hot = search_hot;
 module.exports.check_ball = check_ball;
-
+module.exports.search_nba = search_nba;
 function search_hot(type) {
     return new Promise((resolve) => {
         if (type == "18+") {
@@ -41,7 +41,6 @@ function search_hot(type) {
                         previewImageUrl: src
                     };
                     resolve(result);
-                    console.log(JSON.stringify(result));
                 })
 
             } catch (err) {
@@ -96,29 +95,63 @@ function check_ball() {
 
 function search_nba(search_date) {
     return new Promise((resolve) => {
-
-        let msg = "";
-        if (search_date == "") {
-            let now = new Date();
-            search_date = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
-        }
-        request(`http://tw.global.nba.com/scores/#!/${search_date}`, function (erro, res, body) {
-            const $ = cheerio.load(body);
-            // final-game-table-wrapper
-            // sib-list
-            let games = $(".sib-list-team-game-snapshot");
-            if (games.length > 0) {
-                let game_time = "",
-                    teams = [],
-                    fraction = [];
-                game_time = games.find(".snapshot-header .info span").eq(0).text();
-                teams[0] = games.find(".team-abbrv").eq(0).find('a').text();
-                teams[1] = games.find(".team-abbrv").eq(1).find('a').text();
-                
-            } else {
-                msg = "今天沒有比賽喔！"
+        let msg = [];
+        axios.get(`http://tw.global.nba.com/stats2/scores/daily.json`, {
+            params: {
+                countryCode: 'TW',
+                locale: 'zh_TW',
+                tz: '+8',
+                gameDate: search_date
             }
-        })
-        resolve(msg);
+        }).then((data) => {
+            data = data.data;
+            if (data.payload.date) {
+                let games = data.payload.date.games;
+                games.forEach(function (game) {
+                    let tmp = "";
+                    let timeDec = game.boxscore.statusDesc;
+                    let teams = {
+                        home: game.homeTeam.profile.displayAbbr,
+                        away: game.awayTeam.profile.displayAbbr
+                    }
+                    let score = {
+                        home: game.boxscore.homeScore,
+                        away: game.boxscore.awayScore
+                    }
+                    let play_date = new Date(game.boxscore.utcMillis);
+                    tmp = "狀態: " + timeDec + "\n" + teams.home + "：" + teams.away + "\n" + score.home + "：" + score.away;
+                    msg.push(tmp);
+                });
+            } else {
+                msg.push("今天沒有比賽喔！");
+            }
+            console.log(msg);
+            resolve(msg);
+        });
+        // request(`http://tw.global.nba.com/scores/#!/${search_date}`, function (erro, res, body) {
+        //     const $ = cheerio.load(body);
+        //     // final-game-table-wrapper
+        //     // sib-list
+        //     let games = $(".sib-list-team-game-snapshot");
+        //     if (games.length > 0) {
+        //         let game_info = games.find(".snapshot-header .info").eq(0);
+        //         let game_time = "",
+        //             teams = [],
+        //             fraction = [];
+        //         teams[0] = games.find(".team-abbrv").eq(0).find('a').text();
+        //         teams[1] = games.find(".team-abbrv").eq(1).find('a').text();
+        //         if (game_info.hasClass('live-game')) {
+        //             let gt = game_info.find("span").eq(1);
+        //             game_time = gt.find("span").eq(0).text() + " " + gt.find("span").eq(1).text() + " " + gt.find("span").eq(2).text();
+        //         }
+        //         if (game_info.hasClass("pre-game")) {
+        //             game_time = $(".sib-custom-scores-header .ng-binding").text() + " " + game_info.find("span").eq(0).text();
+        //         }
+        //         console.log(games.length);
+        //     } else {
+        //         msg = "今天沒有比賽喔！"
+        //     }
+        //     resolve(msg);
+        // });
     })
 }
