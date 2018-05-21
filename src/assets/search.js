@@ -119,7 +119,12 @@ function search_nba(search_date) {
                         away: game.boxscore.awayScore
                     }
                     let play_date = new Date(game.boxscore.utcMillis);
-                    tmp = "狀態: " + timeDec + "\n" + teams.home + "：" + teams.away + "\n" + score.home + "：" + score.away;
+                    let date_text = play_date.getFullYear() + "-" + play_date.getMonth() + "-" + play_date.getDay() + "  " + play_date.getHours() + ":" + play_date.getMinutes();
+                    // game.boxscore.status
+                    if (game.boxscore.status == '1') {
+                        timeDec = "未開打";
+                    }
+                    tmp = "日期:"+date_text+"\n"+"狀態: " + timeDec + "\n" + teams.home + "：" + teams.away + "\n" + score.home + "：" + score.away;
                     msg.push(tmp);
                 });
             } else {
