@@ -94,69 +94,89 @@ function check_ball() {
 }
 
 function search_nba(search_date) {
+    function addZero(i) {
+        if (i < 10) {
+            i = "0" + i;
+        }
+        return i;
+    }
+
     return new Promise((resolve) => {
         let msg = [];
-        axios.get(`http://tw.global.nba.com/stats2/scores/daily.json`, {
-            params: {
-                countryCode: 'TW',
-                locale: 'zh_TW',
-                tz: '+8',
-                gameDate: search_date
-            }
-        }).then((data) => {
-            data = data.data;
-            if (data.payload.date) {
-                let games = data.payload.date.games;
-                games.forEach(function (game) {
-                    let tmp = "";
-                    let timeDec = game.boxscore.statusDesc;
-                    let teams = {
-                        home: game.homeTeam.profile.displayAbbr,
-                        away: game.awayTeam.profile.displayAbbr
+        if (search_date == "next") {
+            axios.get(`http://tw.global.nba.com/stats2/season/schedule.json`, {
+                params: {
+                    countryCode: 'TW',
+                    locale: 'zh_TW',
+                    tz: '+8',
+                    days: '7'
+                }
+            }).then((result) => {
+                let tmp = "近7日內並無比賽!";
+                let data = result.data;
+                let dates = data.payload.dates;
+                let game;
+                for (let x = 0; x < 7;x++){
+                    if (dates[x].utcMillis > new Date().getTime()) {
+                        game = dates[x].games[0];
+                        break;
                     }
-                    let score = {
-                        home: game.boxscore.homeScore,
-                        away: game.boxscore.awayScore
-                    }
-                    let play_date = new Date(game.boxscore.utcMillis);
-                    let date_text = play_date.getFullYear() + "-" + play_date.getMonth() + "-" + play_date.getDay() + "  " + play_date.getHours() + ":" + play_date.getMinutes();
-                    // game.boxscore.status
-                    if (game.boxscore.status == '1') {
-                        timeDec = "未開打";
-                    }
-                    tmp = "日期:"+date_text+"\n"+"狀態: " + timeDec + "\n" + teams.home + "：" + teams.away + "\n" + score.home + "：" + score.away;
-                    msg.push(tmp);
-                });
-            } else {
-                msg.push("今天沒有比賽喔！");
-            }
-            console.log(msg);
-            resolve(msg);
-        });
-        // request(`http://tw.global.nba.com/scores/#!/${search_date}`, function (erro, res, body) {
-        //     const $ = cheerio.load(body);
-        //     // final-game-table-wrapper
-        //     // sib-list
-        //     let games = $(".sib-list-team-game-snapshot");
-        //     if (games.length > 0) {
-        //         let game_info = games.find(".snapshot-header .info").eq(0);
-        //         let game_time = "",
-        //             teams = [],
-        //             fraction = [];
-        //         teams[0] = games.find(".team-abbrv").eq(0).find('a').text();
-        //         teams[1] = games.find(".team-abbrv").eq(1).find('a').text();
-        //         if (game_info.hasClass('live-game')) {
-        //             let gt = game_info.find("span").eq(1);
-        //             game_time = gt.find("span").eq(0).text() + " " + gt.find("span").eq(1).text() + " " + gt.find("span").eq(2).text();
-        //         }
-        //         if (game_info.hasClass("pre-game")) {
-        //             game_time = $(".sib-custom-scores-header .ng-binding").text() + " " + game_info.find("span").eq(0).text();
-        //         }
-        //         console.log(games.length);
-        //     } else {
-        //         msg = "今天沒有比賽喔！"
-        //     }
-        //     resolve(msg);
-        // });
+                }
+                let teams = {
+                    home: game.homeTeam.profile.displayAbbr,
+                    away: game.awayTeam.profile.displayAbbr
+                }
+                let play_date = new Date(parseInt(game.profile.utcMillis));
+                let date_text = play_date.getFullYear() + "-" + (play_date.getMonth() + 1) + "-" + play_date.getDate();
+                    date_text += "  " + addZero(play_date.getHours()) + ":" + addZero(play_date.getMinutes());
+                tmp = "日期: " + date_text + "\n" + game.profile.arenaLocation + " " + game.profile.arenaName + "\n" + teams.home + "：" + teams.away;
+                msg.push(tmp);
+                resolve(msg);
+            });        
+        } else {
+            axios.get(`http://tw.global.nba.com/stats2/scores/daily.json`, {
+                params: {
+                    countryCode: 'TW',
+                    locale: 'zh_TW',
+                    tz: '+8',
+                    gameDate: search_date
+                }
+            }).then((result) => {
+                let data = result.data;
+                if (data.payload.date) {
+                    let games = data.payload.date.games;
+                    games.forEach(function (game) {
+                        let tmp = "";
+                        let timeDec = game.boxscore.statusDesc;
+                        let teams = {
+                            home: game.homeTeam.profile.displayAbbr,
+                            away: game.awayTeam.profile.displayAbbr
+                        }
+                        let score = {
+                            home: game.boxscore.homeScore,
+                            away: game.boxscore.awayScore
+                        }
+                        let play_date = new Date(parseInt(game.profile.utcMillis));
+                        let date_text = play_date.getFullYear() + "-" + (play_date.getMonth()+1) + "-" + play_date.getDate();
+                        if (game.boxscore.status != '2') {
+                            date_text += "  " + addZero(play_date.getHours()) + ":" + addZero(play_date.getMinutes());
+                        }
+                        // game.boxscore.status
+                        if (game.boxscore.status == '1') {
+                            timeDec = "未開打";
+                        }
+                        if (game.boxscore.status == '2') {
+                            timeDec += " " + game.boxscore.periodClock;
+                        }
+                        tmp = "日期: " + date_text + "\n" + "狀態: " + timeDec + "\n" + teams.home + "：" + teams.away + "\n" + score.home + "：" + score.away;
+                        msg.push(tmp);
+                    });
+                } else {
+                    msg.push("今天沒有比賽喔！");
+                }
+                resolve(msg);
+            });
+        }    
+       
     })
 }
