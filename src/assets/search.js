@@ -36,6 +36,9 @@ function search_hot(type) {
                     const srcs = $("#postlist td.t_f img");
                     const r = Math.round(Math.random() * (srcs.length - 1));
                     const src = srcs[r].attribs.zoomfile;
+                    if (!/^http/.test(src)) {
+                        src = 'https://www.jkforum.net' + src;
+                    }
                     const result = {
                         type: "image",
                         originalContentUrl: src,

@@ -38,7 +38,7 @@ bot.on('message', function (event) {
                 event.reply(data);
             })
         }
-        if (/打球$/.test(text)) {
+        if (/打球/.test(text)) {
             check_ball().then((data) => {
                 let msg_obj = {
                     type: "text",
