@@ -6,7 +6,8 @@ const
 module.exports.search_hot = search_hot;
 module.exports.check_ball = check_ball;
 module.exports.search_nba = search_nba;
-
+module.exports.random_card = random_card;
+module.exports.get_ticket = get_ticket;
 function search_hot(type) {
     return new Promise((resolve) => {
         if (type == "18+") {
@@ -34,7 +35,7 @@ function search_hot(type) {
                 }, function (err2, res2, body2) {
                     const $ = cheerio.load(body2);
                     const srcs = $("#postlist td.t_f img");
-                    const r = Math.round(Math.random() * (srcs.length - 1));
+                    let r = Math.round(Math.random() * (srcs.length - 1));
                     const src = srcs[r].attribs.zoomfile;
                     if (!/^http/.test(src)) {
                         src = 'https://www.jkforum.net' + src;
@@ -191,4 +192,59 @@ function search_nba(search_date) {
         }
 
     })
+}
+// https://javlog.com/tw/search/%E3%81%BF%E3%81%AA%E3%81%BF%E8%8F%9C%E3%80%85
+function random_card() {
+    console.log("random_card");
+    return new Promise((resolve) => {
+        let page = Math.floor((Math.random() * 5) + 1);
+        // console.log(page);
+        request("https://javlog.com/tw/actresses/page/"+page, function (req, res, body) {
+            try {
+                const $ = cheerio.load(body);
+                const items = $("#waterfall .item");
+                let r = Math.round(Math.random() * (items.length - 1));
+                let star_name = items.eq(r).find(".photo-info span").text();
+                let src = items.eq(r).find(".photo-frame img").attr("src");
+                let img_msg = {
+                    type: "image",
+                    originalContentUrl: src,
+                    previewImageUrl: src
+                };
+                resolve([star_name, img_msg]);
+            }
+            catch(err){
+                console.error(err);
+            }
+
+        });
+    });
+}
+
+function get_ticket(data) {
+    return new Promise((resolve) => {
+        var uri = "";
+        if (data != "") {
+            uri = "https://javlog.com/tw/search/" + encodeURIComponent(data);
+        }
+        else {
+            uri = "https://javlog.com/tw/popular";
+        }
+        request(uri, function (req, res, body) {
+            const $ = cheerio.load(body);
+            const items = $("#waterfall .item");
+            try {
+                let r = Math.round(Math.random() * (items.length - 1));
+                let src = items.eq(r).find(".movie-box").attr("href");
+                let pic = items.eq(r).find(".photo-frame img").attr("src");
+                let info = items.eq(r).find(".photo-info");
+                let name = "車名："+info.find("span").text();
+                let no = "票號："+info.find("date").eq(0).text();
+                resolve(name + "\n" + no);
+            }
+            catch (err) {
+                console.error(err);
+            }
+        });
+    });
 }

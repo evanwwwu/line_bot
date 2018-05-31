@@ -6,7 +6,9 @@ const
 const {
     search_hot,
     check_ball,
-    search_nba
+    search_nba,
+    random_card,
+    get_ticket
 } = require("./assets/search");
 
 
@@ -71,8 +73,24 @@ bot.on('message', function (event) {
                 event.reply(data);
             });
         }
+        if (/^翻牌$/.test(text)) {
+            random_card().then((name) => {
+                console.log(name);
+                event.reply(name);
+            });
+        }
+        if ((/^[!！]領票/).test(text)){
+            let search = "";
+            if (typeof text.split(/\s+/)[1] !== "undefined") { 
+                search = text.split(/\s+/)[1]
+            }
+            get_ticket(search).then((data) => {
+                event.reply(data);
+            });
+        }
     }
 });
+
 app.set('port', (process.env.PORT || 5002));
 app.listen(app.get("port"), function () {
     console.log("running on port ", app.get("port"));
