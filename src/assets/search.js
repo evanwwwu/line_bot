@@ -237,18 +237,23 @@ function get_ticket(data) {
             const $ = cheerio.load(body);
             const items = $("#waterfall .item");
             try {
-                let r = Math.round(Math.random() * (items.length - 1));
-                let src = items.eq(r).find(".movie-box").attr("href");
-                let pic = items.eq(r).find(".photo-frame img").attr("src");
-                let info = items.eq(r).find(".photo-info");
-                let name = "車名："+info.find("span").text();
-                let no = "票號：" + info.find("date").eq(0).text();
-                let img = {
-                    type: "image",
-                    originalContentUrl: pic,
-                    previewImageUrl: pic
-                };
-                resolve([name + "\n" + no, img]);
+                if ($(".alert.alert-danger").length <= 0) {
+                    let r = Math.round(Math.random() * (items.length - 1));
+                    let src = items.eq(r).find(".movie-box").attr("href");
+                    let pic = items.eq(r).find(".photo-frame img").attr("src");
+                    let info = items.eq(r).find(".photo-info");
+                    let name = "車名：" + info.find("span").text();
+                    let no = "票號：" + info.find("date").eq(0).text();
+                    let img = {
+                        type: "image",
+                        originalContentUrl: pic,
+                        previewImageUrl: pic
+                    };
+                    resolve([name + "\n" + no, img]);
+                }
+                else {
+                    resolve("查無此類別!");
+                }
             }
             catch (err) {
                 console.error(err);
