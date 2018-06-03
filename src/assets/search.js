@@ -1,4 +1,5 @@
 const
+    config = require("../../config"),
     request = require("request"),
     cheerio = require("cheerio"),
     axios = require("axios");
@@ -8,6 +9,8 @@ module.exports.check_ball = check_ball;
 module.exports.search_nba = search_nba;
 module.exports.random_card = random_card;
 module.exports.get_ticket = get_ticket;
+module.exports.search_img = search_img;
+
 function search_hot(type) {
     return new Promise((resolve) => {
         if (type == "18+") {
@@ -239,12 +242,46 @@ function get_ticket(data) {
                 let pic = items.eq(r).find(".photo-frame img").attr("src");
                 let info = items.eq(r).find(".photo-info");
                 let name = "車名："+info.find("span").text();
-                let no = "票號："+info.find("date").eq(0).text();
-                resolve(name + "\n" + no);
+                let no = "票號：" + info.find("date").eq(0).text();
+                let img = {
+                    type: "image",
+                    originalContentUrl: pic,
+                    previewImageUrl: pic
+                };
+                resolve([name + "\n" + no, img]);
             }
             catch (err) {
                 console.error(err);
             }
         });
     });
+}
+
+function search_img(msg) {
+    return axios.get(`https://www.googleapis.com/customsearch/v1`, {
+        params: {
+            q: msg,
+            cx: config.cx,
+            imgSize: 'small',
+            searchType: 'image',
+            key: config.gkey,
+            num:10
+        }
+    }).then((response) => {
+        try {
+            let items = response.data.items;
+            console.log(items);
+            let r = Math.round(Math.random() * (items.length - 1));
+            let result = {
+                type: "image",
+                originalContentUrl: items[r].link,
+                previewImageUrl: items[r].image.thumbnailLink
+            }
+            console.log(result);
+            return result;
+        }
+        catch (err) {
+            console.log(err);
+        }
+    })
 }
