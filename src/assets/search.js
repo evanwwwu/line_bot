@@ -226,6 +226,7 @@ function random_card() {
 
 function get_ticket(data) {
     return new Promise((resolve) => {
+        // av539  av01.tv ohyeah1080 hdtube.co Javgo  xo104 javhd3x javcl pigav
         var uri = "";
         if (data != "") {
             uri = "https://javlog.com/tw/search/" + encodeURIComponent(data);
