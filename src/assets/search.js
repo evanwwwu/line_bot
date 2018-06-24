@@ -260,7 +260,7 @@ function get_ticket(data) {
                             previewImageUrl: pic
                         };
                         let liff = "1579514907-GDlZqXpw";
-                        event.reply(`line://app/${liff}?q=${link}`);
+                        liff = `line://app/${liff}?q=${link}`;
                         resolve([img,name,liff]);
                     })
                 }
