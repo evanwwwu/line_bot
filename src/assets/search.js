@@ -227,18 +227,24 @@ function random_card() {
 function get_ticket(data) {
     return new Promise((resolve) => {
         // av539  av01.tv ohyeah1080 hdtube.co Javgo  xo104 javhd3x javcl pigav
+        
         var uri = "";
         if (data != "") {
-            uri = "https://javlog.com/tw/search/" + encodeURIComponent(data);
+            uri = "https://www.av01.tv/?s=" + encodeURIComponent(data);
         }
         else {
-            uri = "https://javlog.com/tw/popular";
+            uri = "https://www.av01.tv/";
+            // #main .column a .tube-title => title
+            // #main .column a .image-wrapper img => img
+            // http://www.av539.com/?search=&s=ges
+            // https://www.av01.tv/?s=ges
         }
+
         request(uri, function (req, res, body) {
             const $ = cheerio.load(body);
-            const items = $("#waterfall .item");
+            const items = $("#main .column");
             try {
-                if ($(".alert.alert-danger").length <= 0) {
+                if ($(".post-not-found").length <= 0) {
                     let r = Math.round(Math.random() * (items.length - 1));
                     let src = items.eq(r).find(".movie-box").attr("href");
                     let pic = items.eq(r).find(".photo-frame img").attr("src");
@@ -253,7 +259,7 @@ function get_ticket(data) {
                     resolve([name + "\n" + no, img]);
                 }
                 else {
-                    resolve("查無此類別!");
+                    resolve("沒車了找下一台吧！");
                 }
             }
             catch (err) {
