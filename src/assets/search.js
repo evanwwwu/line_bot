@@ -39,8 +39,8 @@ function search_hot(type) {
                     const $ = cheerio.load(body2);
                     const srcs = $("#postlist td.t_f img");
                     let r = Math.round(Math.random() * (srcs.length - 1));
-                    const src = srcs[r].attribs.zoomfile;
-                    if (!/^http/.test(src)) {
+                    let src = srcs[r].attribs.zoomfile;
+                    if (/^http/.test(src) !== true) {
                         src = 'https://www.jkforum.net' + src;
                     }
                     const result = {
@@ -241,15 +241,21 @@ function get_ticket(data) {
                     let r = Math.round(Math.random() * (items.length - 1));
                     let src = items.eq(r).find(".movie-box").attr("href");
                     let pic = items.eq(r).find(".photo-frame img").attr("src");
-                    let info = items.eq(r).find(".photo-info");
-                    let name = "車名：" + info.find("span").text();
-                    let no = "票號：" + info.find("date").eq(0).text();
-                    let img = {
-                        type: "image",
-                        originalContentUrl: pic,
-                        previewImageUrl: pic
-                    };
-                    resolve([name + "\n" + no, img]);
+                    request(src, function (req, res, body) {
+                        let $ = cheerio.load(body);
+                        let detail = $("body>.container");
+                        let big_pic = detail.find(".bigImage").attr("href");
+                        let info = items.eq(r).find(".photo-info");
+                        let name = "車名：" + info.find("span").text();
+                        let no = "票號：" + info.find("date").eq(0).text();
+                        let img = {
+                            type: "image",
+                            originalContentUrl: big_pic,
+                            previewImageUrl: pic
+                        };
+                        let msg = name + "\n" + no + "\n" + src;
+                        resolve([img,msg]);
+                    })
                 }
                 else {
                     resolve("查無此類別!");
@@ -263,30 +269,32 @@ function get_ticket(data) {
 }
 
 function search_img(msg) {
-    return axios.get(`https://www.googleapis.com/customsearch/v1`, {
-        params: {
-            q: msg,
-            cx: config.cx,
-            imgSize: 'small',
-            searchType: 'image',
-            key: config.gkey,
-            num:10
-        }
-    }).then((response) => {
-        try {
-            let items = response.data.items;
-            console.log(items);
-            let r = Math.round(Math.random() * (items.length - 1));
-            let result = {
-                type: "image",
-                originalContentUrl: items[r].link,
-                previewImageUrl: items[r].image.thumbnailLink
+    return new Promise((resolve) => {
+        axios.get(`https://www.googleapis.com/customsearch/v1`, {
+            params: {
+                q: msg,
+                cx: config.cx,
+                imgSize: 'large',
+                searchType: 'image',
+                key: config.gkey,
+                exactTerms:"https:",
+                num:10
             }
-            console.log(result);
-            return result;
-        }
-        catch (err) {
-            console.log(err);
-        }
+        }).then((response) => {
+            try {
+                let items = response.data.items;
+                let r = Math.round(Math.random() * (items.length - 1));
+                let result = {
+                    type: "image",
+                    originalContentUrl: items[r].link,
+                    previewImageUrl: items[r].link
+                }
+                resolve(result);
+                console.log(result);
+            }
+            catch (err) {
+                console.log(err);
+            }
+        })
     })
 }
