@@ -256,14 +256,23 @@ function get_ticket(data) {
                         let info = detail.find(".singletitle");
                         let link = detail.find("#Video_Player iframe").attr("src");
                         let name = "車名：" + info.text();
-                        let img = {
-                            type: "image",
-                            originalContentUrl: pic,
-                            previewImageUrl: pic
-                        };
-                        let liff = "1579514907-GDlZqXpw";
-                        liff = `line://app/${liff}?q=${link}`;
-                        resolve([name,liff]);
+                        request(link,function(req,res,body){
+                            let $ = cheerio.load(body);
+                            let video = $("#videojs").find("source").eq(0).attr("src");
+                            let pic = $("#videojs").attr("poster");
+                            let img = "";
+                            if (/^https/.test(pic) === true) {
+                                img = {
+                                    type: "image",
+                                    originalContentUrl: pic,
+                                    previewImageUrl: pic
+                                };
+                            }
+                            let liff = "1579514907-GDlZqXpw";
+                            liff = `line://app/${liff}?q=${video}`;
+                            resolve([img,name,liff]);
+
+                        });
                     })
                 }
                 else {
