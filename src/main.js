@@ -182,42 +182,6 @@ bot.on('message', function (event) {
                     event.reply(m);
                })
             }
-            else if (/ss/.test(text)) {
-                // console.log('sticker'); 
-                // let m = {
-                //     type: "imagemap",
-                //     baseUrl: "https://via.placeholder.com/700x700/",
-                //     altText: "imagemap",
-                //     baseSize: {
-                //         width: "1024",
-                //         height:"1024"
-                //     },
-                //     actions: [
-                //         {
-                //             "type": "uri",
-                //             "linkUri": "https://example.com/",
-                //             "area": {
-                //                 "x": 0,
-                //                 "y": 0,
-                //                 "width": 520,
-                //                 "height": 1040
-                //             }
-                //         },
-                //         {
-                //             "type": "message",
-                //             "label":"TEST",
-                //             "text": "Hello",
-                //             "area": {
-                //                 "x": 520,
-                //                 "y": 0,
-                //                 "width": 520,
-                //                 "height": 1040
-                //             }
-                //         }
-                //     ]
-                // }
-                // event.reply(m);
-            }
             else if (/liff/.test(text)) {
                 // -X POST https://api.line.me/liff/v1/apps \
                 // -H "Authorization: Bearer {channel access token}" \

@@ -227,41 +227,41 @@ function random_card() {
 function get_ticket(data) {
     return new Promise((resolve) => {
         // av539  av01.tv ohyeah1080 hdtube.co Javgo  xo104 javhd3x javcl pigav
-        
+        // go21.cc
         var uri = "";
         if (data != "") {
-            uri = "https://www.av01.tv/?s=" + encodeURIComponent(data);
+            uri = "http://www.av539.com/?search=&s=" + encodeURIComponent(data);
         }
         else {
-            uri = "https://www.av01.tv/";
-            // #main .column a .tube-title => title
-            // #main .column a .image-wrapper img => img
+            uri = "http://www.av539.com/";
+            // .Thumbnail_List .thumi a .tube-title => title
             // http://www.av539.com/?search=&s=ges
-            // https://www.av01.tv/?s=ges
         }
 
         request(uri, function (req, res, body) {
             const $ = cheerio.load(body);
-            const items = $("#main .column");
+            const items = $(".Thumbnail_List .thumi");
             try {
-                if ($(".post-not-found").length <= 0) {
+                if ($(".search_page .none").length <= 0) {
                     let r = Math.round(Math.random() * (items.length - 1));
-                    let src = items.eq(r).find(".movie-box").attr("href");
-                    let pic = items.eq(r).find(".photo-frame img").attr("src");
+                    let src = items.eq(r).find(">a").attr("href");
+                    let pic = items.eq(r).find(">a img").attr("src");
+                    pic = pic.replace("218x147","");
+                    // main page
                     request(src, function (req, res, body) {
                         let $ = cheerio.load(body);
-                        let detail = $("body>.container");
-                        let big_pic = detail.find(".bigImage").attr("href");
-                        let info = items.eq(r).find(".photo-info");
-                        let name = "車名：" + info.find("span").text();
-                        let no = "票號：" + info.find("date").eq(0).text();
+                        let detail = $("#VideoSinglePage");
+                        let info = detail.eq(r).find(".singletitle");
+                        let link = detail.find("#Video_Player iframe").attr("src");
+                        let name = "車名：" + info.text();
                         let img = {
                             type: "image",
-                            originalContentUrl: big_pic,
+                            originalContentUrl: pic,
                             previewImageUrl: pic
                         };
-                        let msg = name + "\n" + no + "\n" + src;
-                        resolve([img,msg]);
+                        let liff = "1579514907-GDlZqXpw";
+                        event.reply(`line://app/${liff}?q=${link}`);
+                        resolve([img,name,liff]);
                     })
                 }
                 else {
