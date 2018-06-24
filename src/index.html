@@ -47,7 +47,7 @@
         return "";
     }
     $(function(){
-        $("#video").attr("src",QueryString("q"));
+ $("#video").attr("src",decodeURIComponent(QueryString("q")));
         $(".btn1").click(function(){
             liff.openWindow({ url:'https://tw.yahoo.com/', external:true });
         })

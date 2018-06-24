@@ -226,6 +226,7 @@ function random_card() {
 
 function get_ticket(data) {
     return new Promise((resolve) => {
+        console.log("in")
         // av539  av01.tv ohyeah1080 hdtube.co Javgo  xo104 javhd3x javcl pigav
         // go21.cc
         var uri = "";
@@ -241,6 +242,7 @@ function get_ticket(data) {
         request(uri, function (req, res, body) {
             const $ = cheerio.load(body);
             const items = $(".Thumbnail_List .thumi");
+            console.log(items)
             try {
                 if ($(".search_page .none").length <= 0) {
                     let r = Math.round(Math.random() * (items.length - 1));
@@ -251,7 +253,7 @@ function get_ticket(data) {
                     request(src, function (req, res, body) {
                         let $ = cheerio.load(body);
                         let detail = $("#VideoSinglePage");
-                        let info = detail.eq(r).find(".singletitle");
+                        let info = detail.find(".singletitle");
                         let link = detail.find("#Video_Player iframe").attr("src");
                         let name = "車名：" + info.text();
                         let img = {
@@ -261,7 +263,7 @@ function get_ticket(data) {
                         };
                         let liff = "1579514907-GDlZqXpw";
                         liff = `line://app/${liff}?q=${link}`;
-                        resolve([img,name,liff]);
+                        resolve([name,liff]);
                     })
                 }
                 else {
