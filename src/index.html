@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
+    <script src="//console.re/connector.js" data-channel="21e2-dfca-8393" id="consolerescript"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <title>test</title>
+    <style>
+        .profile{
+            width: 200px;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        liff.init(function(data){
+                    // Now you can call LIFF API
+                    var userId = data.context.userId;
+                    console.re.log(data);
+                    console.re.log(321);
+                }
+            );
+    </script>
+<img src="" alt="" class="profile">
+    <p class="name"></p>
+    <button class="btn1">開</button>
+    <button class="btn2">偷</button>
+    <button class="btn3">送</button>
+    <button class="btn4">關</button>
+</body>
+<script>
+    $(function(){
+        console.re.size("btn1");
+        $(".btn1").click(function(){
+            liff.openWindow({ url:'https://tw.yahoo.com/', external:true });
+        })
+        $(".btn2").click(function(){
+            liff.getProfile()
+            .then(function(profile) { 
+                // const name = profile.displayName 
+                console.re.log(profile);
+                $(".profile").attr("src",profile.pictureUrl);
+                $(".name").text(profile.displayName);
+            })
+            .catch(function(err){ console.log('error', err); });
+        });
+        $(".btn3").click(function(){
+            if($(".porfile").attr("src")!=""){ 
+                var name = $(".name").text();
+                var pic = $(".profile").attr("src");
+                liff.sendMessages([ 
+                    {
+                        type:"image",
+                        originalContentUrl:pic,
+                        previewImageUrl:pic
+                    }, 
+                    { type:"text", text: `${name}想要hot一下`},
+                ])
+            }
+            else{
+                liff.sendMessages([ { type:"text", text:'hot' } ])
+            }  
+            liff.closeWindow();
+        })
+        $(".btn4").click(function(){
+            liff.closeWindow();
+        })
+    })
+</script>
+</html>
