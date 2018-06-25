@@ -226,53 +226,63 @@ function random_card() {
 
 function get_ticket(data) {
     return new Promise((resolve) => {
-        console.log("in")
-        // av539  av01.tv ohyeah1080 hdtube.co Javgo  xo104 javhd3x javcl pigav
+        // javkimochiii.com
         // go21.cc
         var uri = "";
+        var main_name = "";
         if (data != "") {
-            uri = "http://www.av539.com/?search=&s=" + encodeURIComponent(data);
+            if(data == "步兵"){
+                uri = "https://javkimochiii.com/?s=" + encodeURIComponent(data);
+            }
+            else{
+                uri = "https://javkimochiii.com/category/uncensored/";
+            }
         }
         else {
-            uri = "http://www.av539.com/";
-            // .Thumbnail_List .thumi a .tube-title => title
-            // http://www.av539.com/?search=&s=ges
+            uri = "https://javkimochiii.com/";
+            // #content .video-item a .tube-title => title
         }
 
         request(uri, function (req, res, body) {
             const $ = cheerio.load(body);
-            const items = $(".Thumbnail_List .thumi");
-            console.log(items)
+            const items = $("#content .video-item");
             try {
-                if ($(".search_page .none").length <= 0) {
+                if ($("#content .no-results").length <= 0) {
                     let r = Math.round(Math.random() * (items.length - 1));
-                    let src = items.eq(r).find(">a").attr("href");
-                    let pic = items.eq(r).find(">a img").attr("src");
-                    pic = pic.replace("218x147","");
+                    let src = items.eq(r).find(".item-thumbnail a").attr("href");
+                    let pic = items.eq(r).find(".item-thumbnail a > img").attr("src");
                     // main page
                     request(src, function (req, res, body) {
                         let $ = cheerio.load(body);
-                        let detail = $("#VideoSinglePage");
-                        let info = detail.find(".singletitle");
-                        let link = detail.find("#Video_Player iframe").attr("src");
+                        let detail = $("#content");
+                        let info = detail.find(".box-title .light-title");
+                        let link = detail.find("iframe").eq(-1).attr("src");
                         let name = "車名：" + info.text();
-                        request(link,function(req,res,body){
-                            let $ = cheerio.load(body);
-                            let video = $("#videojs").find("source").eq(0).attr("src");
-                            let pic = $("#videojs").attr("poster");
-                            let img = "";
-                            if (/^https/.test(pic) === true) {
-                                img = {
-                                    type: "image",
-                                    originalContentUrl: pic,
-                                    previewImageUrl: pic
-                                };
-                            }
-                            let liff = "1579514907-GDlZqXpw";
-                            liff = `line://app/${liff}?q=${video}`;
-                            resolve([img,name,liff]);
+                        let img = {
+                                type: "image",
+                                originalContentUrl: pic,
+                                previewImageUrl: pic
+                            };
+                        let liff = "1579514907-GDlZqXpw";
+                        liff = `line://app/${liff}?q=${link}`;
+                        resolve([img,name,liff]);
+                        // request(link,function(req,res,body){
+                        //     let $ = cheerio.load(body);
+                        //     let video = $("#videojs").find("source").eq(0).attr("src");
+                        //     let pic = $("#videojs").attr("poster");
+                        //     let img = "";
+                        //     if (/^https/.test(pic) === true) {
+                        //         img = {
+                        //             type: "image",
+                        //             originalContentUrl: pic,
+                        //             previewImageUrl: pic
+                        //         };
+                        //     }
+                        //     let liff = "1579514907-GDlZqXpw";
+                        //     liff = `line://app/${liff}?q=${video}`;
+                        //     resolve([img,name,liff]);
 
-                        });
+                        // });
                     })
                 }
                 else {
