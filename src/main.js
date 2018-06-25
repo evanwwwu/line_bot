@@ -162,7 +162,6 @@ bot.on('message', function (event) {
                     search = text.split(/\s+/)[1];
                 }
                 get_ticket(search).then((data) => {
-                    console.log(data);
                     event.reply(data)
                     CA.agent("領票");
                 });
