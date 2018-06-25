@@ -229,7 +229,6 @@ function get_ticket(data) {
         // javkimochiii.com
         // go21.cc
         var uri = "";
-        var main_name = "";
         if (data != "") {
             if(data == "步兵"){
                 uri = "https://javkimochiii.com/?s=" + encodeURIComponent(data);
@@ -242,17 +241,18 @@ function get_ticket(data) {
             uri = "https://javkimochiii.com/";
             // #content .video-item a .tube-title => title
         }
-
-        request(uri, function (req, res, body) {
+        var option  = {url:uri,headers:{'User-Agent': 'request'}};
+        request.get(option, function (req, res, body) {
             const $ = cheerio.load(body);
-            const items = $("#content .video-item");
+            const items = $(".video-item");
             try {
                 if ($("#content .no-results").length <= 0) {
                     let r = Math.round(Math.random() * (items.length - 1));
                     let src = items.eq(r).find(".item-thumbnail a").attr("href");
                     let pic = items.eq(r).find(".item-thumbnail a > img").attr("src");
                     // main page
-                    request(src, function (req, res, body) {
+                    option  = {url:src,headers:{'User-Agent': 'request'}};
+                    request.get(option, function (req, res, body) {
                         let $ = cheerio.load(body);
                         let detail = $("#content");
                         let info = detail.find(".box-title .light-title");
