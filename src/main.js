@@ -3,6 +3,7 @@ const
     axios = require("axios"),
     linebot = require("linebot"),
     express = require("express"),
+    FormData = require('form-data'),
     app = express();
 
 const version = "0.8";
@@ -42,12 +43,14 @@ bot.on('message', async function (event) {
                 }
                 if (/^[+＋]1/.test(newStr)) {
                     const userData = await bot.getUserProfile(user_id);
-                    let res = await axios.post('https://script.google.com/macros/s/AKfycbyKonwRNLZ7TOOkczua8skdGW1Y--vpPlAxgWBg0Kek7E5wNLg/exec', {
-                        name: userData.displayName,
-                        date: '星期五',
-                        num: 2
+                    let bodyData = new FormData();
+                    bodyData.append('name', userData.displayName);
+                    bodyData.append('date', '星期四');
+                    bodyData.append('num', 4);
+                    let res = await axios.post('https://script.google.com/macros/s/AKfycbyKonwRNLZ7TOOkczua8skdGW1Y--vpPlAxgWBg0Kek7E5wNLg/exec', bodyData, {
+                        headers: bodyData.getHeaders(),
                     });
-                    console.log(userData,res);
+                    console.log(userData.displayName, res.config, res.data);
                 }
             }
         }
