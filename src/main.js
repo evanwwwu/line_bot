@@ -41,13 +41,14 @@ bot.on('message', async function (event) {
                 if (/規則/.test(newStr)) {
                     event.reply('this is test')
                 }
-                if (/^[+＋]1/.test(newStr)) {
+                if (/^[+＋]\d+/.test(newStr)) {
                     const userData = await bot.getUserProfile(user_id);
+                    let datas = newStr.replace(/[+＋]/,'').split(/\s+/);
                     let bodyData = new FormData();
                     bodyData.append('name', userData.displayName);
-                    bodyData.append('date', '星期四');
-                    bodyData.append('num', 4);
-                    let res = await axios.post('https://script.google.com/macros/s/AKfycbyKonwRNLZ7TOOkczua8skdGW1Y--vpPlAxgWBg0Kek7E5wNLg/exec', bodyData, {
+                    bodyData.append('date', datas[1]);
+                    bodyData.append('num', datas[0]);
+                    let res = await axios.post('https://script.google.com/macros/s/AKfycbwwC--_39aBvQJ5u8dPTlUCYtIeGL-QGh7Y-p21afQhD3HcLpNh/exec', bodyData, {
                         headers: bodyData.getHeaders(),
                     });
                     console.log(userData.displayName, res.config, res.data);
