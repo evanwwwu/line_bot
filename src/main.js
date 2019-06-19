@@ -1,5 +1,5 @@
 const
-    config = require("../config"),
+    config = (process.env.MODE === 'production')? process.env : require("../config"),
     axios = require("axios"),
     linebot = require("linebot"),
     express = require("express"),
