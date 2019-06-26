@@ -24,6 +24,7 @@
     "@google/chatbase": "^1.1.1",
     "axios": "^0.18.0",
     "cheerio": "^1.0.0-rc.2",
+    "console-remote-client": "^0.5.1",
     "express": "^4.16.3",
     "form-data": "^2.3.3",
     "http": "0.0.0",
