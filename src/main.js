@@ -28,7 +28,7 @@ bot.on('message', async function (event) {
             type,
             text
         } = event.message;
-        // console.log(event);
+        console.log(event);
         console.re.log(event);
         const group_id = event.source.groupId;
         const room_id = event.source.roomId;
@@ -40,7 +40,7 @@ bot.on('message', async function (event) {
                 event.reply('我起床了！');
             }
             if (/^[!！]開團規則/.test(text)) {
-                const roleStr = "!起床 => 我有可能會休眠，所以記得叫我起床\n\n!開團 {團名}\nEx：!開團 可不可\n\n!+1 {品項名稱} {金額}\nEx：!+1 熟成紅茶/半糖少冰/大 35 (切記品項\"請勿使用空白\")\n\n!-1 => 刪除自己的項目\n\n!結單 => 關閉此訂單，無法在+1\n\n!名單 => 可查看名單";
+                const roleStr = "!起床 => 我有可能會休眠，所以記得叫我起床\n\n!開團 {團名}\nEx：!開團 可不可\n\n!+1 {品項名稱} {金額}\nEx：!+1 熟成紅茶/半糖少冰/大,熟成紅茶/半糖少冰/中 35+25 (品項\"請勿使用空白,可使用','分隔\")\n\n!-1 => 刪除自己的項目\n\n!結單 => 關閉此訂單，無法在+1\n\n!名單 => 可查看名單";
                 event.reply(roleStr);
             }
             if (/^[!！]開團/.test(text)) {
@@ -60,9 +60,16 @@ bot.on('message', async function (event) {
                 let res = await axios.post('https://script.google.com/macros/s/AKfycbxF8ZEohmFDzebTWpSq6v-RGIOA7pVhxGc04D28Mw8Ku03g5FA/exec', bodyData, {
                     headers: bodyData.getHeaders(),
                 });
-                if (!res.result){
-                    event.reply('開團成功')
-                }                
+                let result = res.data;
+                if (result) {
+                    if (!result.error) {
+                        event.reply('開團成功');
+                    } else if (result.msg) {
+                        event.reply(result.msg)
+                    } else {
+                        event.reply('系統錯誤')
+                    }
+                }
             }
             if (/^[!！][+＋]1/.test(text)) {
                 let userData;
@@ -82,10 +89,14 @@ bot.on('message', async function (event) {
                 let res = await axios.post('https://script.google.com/macros/s/AKfycbxF8ZEohmFDzebTWpSq6v-RGIOA7pVhxGc04D28Mw8Ku03g5FA/exec', bodyData, {
                     headers: bodyData.getHeaders(),
                 });
-                if (res.data.update) {
-                    event.reply('更新成功')
+                if(!res.data.error){
+                    if (res.data.update) {
+                        event.reply('更新成功')
+                    } else {
+                        event.reply('新增完成');
+                    }
                 } else {
-                    event.reply('新增完成');
+                    event.reply(res.data.msg);
                 }
             }
             if (/^[!！][-]1/.test(text)) {
@@ -122,7 +133,6 @@ bot.on('message', async function (event) {
                 let res = await axios.post('https://script.google.com/macros/s/AKfycbxF8ZEohmFDzebTWpSq6v-RGIOA7pVhxGc04D28Mw8Ku03g5FA/exec', bodyData, {
                     headers: bodyData.getHeaders(),
                 });
-                console.log(res.data);
                 if (res.data.success) {
                     event.reply('結單完成\nhttps://docs.google.com/spreadsheets/d/1hKTLKZmRrYs_y0gwayilD492iEOk4MgQn83jroTL1C4/edit?usp=sharing');
                 }
