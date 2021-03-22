@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=960">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://d.line-scdn.net/liff/1.0/sdk.js"></script>
+    <title>福媽a私房錢</title>
+    <script type="text/javascript" src="//cloudfront.loggly.com/js/loggly.tracker-latest.min.js" async></script>
+<script src="//console.re/connector.js" data-channel="evanwwwu" id="consolerescript"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- <link rel="stylesheet" href="css/liff.css"> -->
+    <script>
+        var _LTracker = _LTracker || [];
+        _LTracker.push({
+            'logglyKey': '8016ea6d-fa64-4c93-bddb-461c5e78fd99',
+            'sendConsoleErrors': true,
+            'tag': 'fumom-liff'
+        });
+    </script>
+</head>
+
+<body>
+    <div class="main-content" id="app">
+        <form class="form" v-show="!success" v-on:submit.prevent="submitData">
+            <h1>恭喜中獎！</h1>
+            <img class="main" :src="awardPath" alt="">
+            <p class="name">{{winner}}</p>
+            <p>美賣喔！居然猜的到福媽金句～</p>
+            <p>
+                阿你記得留下聯絡資料，讓福媽把私房錢
+                <span>{{awardName}}</span>送到你的手中嘿！</p>
+            <ul>
+                <input class="linename" v-model="linename" type="hidden" name="linename" readonly="">
+                <input class="lineid" v-model="lineid" type="hidden" name="userid" readonly="">
+                <li>
+                    <span>姓名</span>
+                    <input type="text" name="username" v-model="username" placeholder="例：王小明">
+                </li>
+                <li>
+                    <span>手機</span>
+                    <input class="tel" type="tel" name="phone" v-model="phone" maxlength="10" placeholder="例：0987-654321">
+                </li>
+                <li>
+                    <span>email</span>
+                    <input type="mail" name="email" v-model="email" placeholder="例：cf@gmail.com">
+                </li>
+            </ul>
+            <button class="save_data" v-if="(token != ''&amp;&amp;winner!='')" type="submit">
+                <span>確定送出</span>
+                <div class="sk-fading-circle" v-if="loading">
+                    <div class="sk-circle" v-for="(el,i) in 12" :class="'sk-circle' + (i+1)"></div>
+                </div>
+                <img v-if="!loading" src="images/liff/arr-btn.png">
+            </button>
+        </form>
+        <transition name="fade" mode="out-in" key="success">
+            <div id="popup" v-if="success">
+                <div class="success__content" v-if="statusCode==200">
+                    <h2>已完成資料填寫</h2>
+                    <img src="images/liff/mom-haha.png" alt="">
+                    <p class="sub">讚讚讚!!!</p>
+                    <p class="sub">能猜出福媽彩蛋真的hen棒</p>
+                    <p>
+                        啊福媽吼~會在2018/10/09前，把
+                        <span>{{awardName}}</span>電子序號寄給你，你丟愛擱注意一下喔！</p>
+                    <div class="close-btn" @click="close_liff">
+                        <span>知道了</span>
+                        <img src="images/liff/arr-btn.png">
+                    </div>
+                    <a class="sp" @click="link_open">看看別人猜到了什麼彩蛋></a>
+                </div>
+                <div class="success__content" v-if="statusCode==201">
+                    <h2>非中獎人填寫</h2>
+                    <p class="sub">阿唷~ 恩湯喔!</p>
+                    <p>人家說「細漢偷挽瓠，大漢偷牽牛」這個不是你中的彩蛋ㄋㄟ！快叫真正的中獎人來填資料噢！</p>
+                    <div class="close-btn" @click="close_liff">
+                        <span>關閉</span>
+                        <img src="images/liff/arr-btn.png">
+                    </div>
+                    <a @click="link_open">看看別人猜到了什麼彩蛋></a>
+                </div>
+                <div class="success__content" v-if="statusCode==202">
+                    <h2>已填寫過資料</h2>
+                    <p class="sub">賣丟急啦~</p>
+                    <p>
+                        啊福媽吼~會在2018/10/09前，把
+                        <span>{{awardName}}</span>電子序號寄給你，你丟愛擱注意一下喔！</p>
+                    <div class="close-btn" @click="close_liff">
+                        <span>關閉</span>
+                        <img src="images/liff/arr-btn.png">
+                    </div>
+                    <a @click="link_open">看看別人猜到了什麼彩蛋></a>
+                </div>
+            </div>
+        </transition>
+        <transition name="fade" mode="out-in" key="error">
+            <div class="error" id="popup" v-if="error_msg.title!=&quot;&quot;">
+                <div class="error__content">
+                    <p class="sub">{{error_msg.title}}</p>
+                    <p class="info">{{error_msg.ex}}</p>
+                    <div class="close-btn" @click="error_msg.title=''">
+                        <span>關閉</span>
+                        <img src="images/liff/arr-btn.png">
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </div>
+    <script>
+        liff.init(function (data) {
+ console.re.debug(data.context.userId);
+            liff.getProfile()
+                .then(function (profile) {
+                    vm.linename = profile.displayName;
+                })
+                .catch(function (err) {
+            console.re.debug(err);
+                        });
+                }, function (err) {
+            console.re.debug(err);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,24 +1,13 @@
 const
-    config = require("../config"),
+    config = (process.env.MODE === 'production')? process.env : require("../config"),
     axios = require("axios"),
     linebot = require("linebot"),
     express = require("express"),
-    chatbase = require("./assets/chatbase"),
-    jieba = require("./assets/jieba"),
+    FormData = require('form-data'),
     app = express();
 
-const version = "1.4";
-
-const {
-    search_hot,
-    check_ball,
-    search_nba,
-    random_card,
-    get_ticket,
-    search_img
-} = require("./assets/search");
-
-
+const version = "1.0";
+const consolere = require('console-remote-client').connect('console.re', '80', config.consoleRe);
 const bot = linebot({
     channelId: config.CHANNER_ID,
     channelSecret: config.CHANNEL_SECRET,
@@ -30,7 +19,6 @@ const linebotParser = bot.parser();
 app.post("/", linebotParser);
 
 app.get("/test", function (req, res) {
-    console.log(__dirname);
     res.sendFile(__dirname +"/index.html");
 });
 bot.on('beacon', async (event) => {
@@ -38,16 +26,20 @@ bot.on('beacon', async (event) => {
     event.reply(JSON.stringify(event));
 });
 
-bot.on('message', function (event) {
+
+
+bot.on('message', async function (event) {
     try {
         const {
             type,
             text
         } = event.message;
-        console.log(event);
+        // console.log(event);
+        console.re.log(event);
         const group_id = event.source.groupId;
+        const room_id = event.source.roomId;
         const user_id = event.source.userId;
-        const base_id = group_id || user_id;
+        const base_id = group_id || room_id;
 
         if (type == 'text') {
             if (/hot/.test(text.toLowerCase())) {
@@ -60,7 +52,7 @@ bot.on('message', function (event) {
                     event.reply(data);
                 })
             }
-            else if (/打球/.test(text)) {
+            if (/打球/.test(text)) {
                 check_ball().then((data) => {
                     let msg_obj = {
                         type: "text",
@@ -69,14 +61,7 @@ bot.on('message', function (event) {
                     event.reply(msg_obj);
                 });
             }
-            else if (/老司機/.test(text)) {
-                // event.reply({
-                //     type: "image",
-                //     originalContentUrl: "https://i.imgur.com/bCvzCy4l.png",
-                //     previewImageUrl: "https://i.imgur.com/bCvzCy4l.png"
-                // })
-            }
-            else if (/作者/.test(text)) {
+            if (/作者/.test(text)) {
                 bot.getGroupMemberProfile("Cada635717317ff283d8896b1b09650cc", "U6edf01250c0ddf605be496a860c2f395").then((user) => {
                     event.reply(["@" + user.displayName, {
                         type: "image",
@@ -85,7 +70,7 @@ bot.on('message', function (event) {
                     }]);
                 })
             }
-            else if (/危險/.test(text)) {
+            if (/危險/.test(text)) {
                 event.reply([{
                     type: "sticker",
                     packageId: "1",
@@ -104,88 +89,186 @@ bot.on('message', function (event) {
                     stickerId: "423"
                 }]);
             }
-            else if (/fuckjr/.test(text.toLowerCase())) {
-                event.reply({
-                    type: "image",
-                    originalContentUrl: "https://pbs.twimg.com/media/Dek4f7zU0AAcsfq.jpg:large",
-                    previewImageUrl: "https://pbs.twimg.com/media/Dek4f7zU0AAcsfq.jpg:large"
-                });
+            if (/^[！!]起床/.test(text)) {
+                event.reply('我起床了！');
             }
-            else if (/^[!！]nba/.test(text.toLowerCase())) {
-                let date_type = "";
-                if (typeof text.split(/\s+/)[1] !== "undefined") {
-                    if (/next/.test(text.split(/\s+/)[1].toLowerCase())) {
-                        date_type = "next";
-                    } else {
-                        let search_date = text.split(/\s+/)[1].split("-");
-                        let date_format = new Date(search_date[0] + "-" + search_date[1] + "-" + search_date[2]);
-                        if (date_format.getFullYear() == search_date[0] && (date_format.getMonth() + 1) == search_date[1] && date_format.getDate() == search_date[2]) {
-                            date_type = text.split(/\s+/)[1];
-                        }
-                    }
+            if (/^[!！]開團規則/.test(text)) {
+                const roleStr = "!起床 => 我有可能會休眠，所以記得叫我起床\n\n!開團 {團名}\nEx：!開團 可不可\n\n!+1 {品項名稱} {金額}\nEx：!+1 熟成紅茶/半糖少冰/大 35 (切記品項\"請勿使用空白\")\n\n!-1 => 刪除自己的項目\n\n!結單 => 關閉此訂單，無法在+1\n\n!名單 => 可查看名單";
+                event.reply(roleStr);
+            }
+            if (/^[!！]開團/.test(text)) {
+                let userData;
+                if (event.source.type == 'room') {
+                    userData = await bot.getRoomMemberProfile(room_id, user_id)
+                } else if (event.source.type == 'group') {
+                    userData = await bot.getGroupMemberProfile(group_id, user_id)
+                } else {
+                    userData = await bot.getUserProfile(user_id);
                 }
-                search_nba(date_type).then((data) => {
-                    event.reply(data);
+                let datas = text.split(/\s+/);
+                let bodyData = new FormData();
+                bodyData.append('name', userData.displayName);
+                bodyData.append('tabName', datas[1]);
+                bodyData.append('method', 'addTab');
+                let res = await axios.post('https://script.google.com/macros/s/AKfycbxF8ZEohmFDzebTWpSq6v-RGIOA7pVhxGc04D28Mw8Ku03g5FA/exec', bodyData, {
+                    headers: bodyData.getHeaders(),
                 });
+                if (!res.result){
+                    event.reply('開團成功')
+                }                
             }
-            else if (/^翻牌$/.test(text)) {
+            if (/^[!！][+＋]1/.test(text)) {
+                let userData;
+                if (event.source.type == 'room') {
+                    userData = await bot.getRoomMemberProfile(room_id, user_id)
+                } else if (event.source.type == 'group') {
+                    userData = await bot.getGroupMemberProfile(group_id, user_id)
+                } else {
+                    userData = await bot.getUserProfile(user_id);
+                }
+                let datas = text.replace(/[+＋]1/, '').split(/\s+/);
+                let bodyData = new FormData();
+                bodyData.append('name', userData.displayName);
+                bodyData.append('items', datas[1]);
+                bodyData.append('money', datas[2]);
+                bodyData.append('method', 'addUser');
+                let res = await axios.post('https://script.google.com/macros/s/AKfycbxF8ZEohmFDzebTWpSq6v-RGIOA7pVhxGc04D28Mw8Ku03g5FA/exec', bodyData, {
+                    headers: bodyData.getHeaders(),
+                });
+                if (res.data.update) {
+                    event.reply('更新成功')
+                } else {
+                    event.reply('新增完成');
+                }
+            }
+            if (/^翻牌$/.test(text)) {
                 random_card().then((name) => {
                     console.log(name);
                     event.reply(name);
                 });
             }
-            else if (/^[!！]＄/.test(text)) {
-                let search = "";
-                if (typeof text.split(/\s+/)[1] !== "undefined") {
-                    search = text.split(/\s+/)[1];
+            if (/^[!！][-]1/.test(text)) {
+                let userData;
+                if (event.source.type == 'room') {
+                    userData = await bot.getRoomMemberProfile(room_id, user_id)
+                } else if (event.source.type == 'group') {
+                    userData = await bot.getGroupMemberProfile(group_id, user_id)
+                } else {
+                    userData = await bot.getUserProfile(user_id);
                 }
-                get_ticket(search).then((data) => {
-                    event.reply(data)
+                let bodyData = new FormData();
+                bodyData.append('name', userData.displayName);
+                bodyData.append('method', 'delUser');
+                let res = await axios.post('https://script.google.com/macros/s/AKfycbxF8ZEohmFDzebTWpSq6v-RGIOA7pVhxGc04D28Mw8Ku03g5FA/exec', bodyData, {
+                    headers: bodyData.getHeaders(),
                 });
-            } else if (/正常/.test(text)) {
-                let search = "";
-                    event.reply("我很乖，沒亂說話")
-            } 
-            else if (/^[#＃]/.test(text)) {
+                if (res.data.success) {
+                    event.reply('刪除成功')
+                }
+            }
+            if (/^[#＃]/.test(text)) {
                 search_img(text.replace(/[#＃]+/, "")).then((data) => {
                     event.reply([data]);
                 })
             }
-            else if (/^\$/.test(text)) {
+            // jieba
+            if (/^\$/.test(text)) {
                 new jieba().cut(text.replace(/\$/, "")).then((data) => {
                     let m = data.join("-");
                     event.reply(m);
-               })
+                })
             }
-            else if (/liff/.test(text)) {
-                // -X POST https://api.line.me/liff/v1/apps \
-                // -H "Authorization: Bearer {channel access token}" \
-                // -H "Content-Type: application/json" \
-                // -d '{
-                // "view": {
-                //     "type": "tall",  // compactm, tall, full
-                //     "url": "https://b0ed503e.ngrok.io/test"
-                // }
-                // } '
-                let liff = "1579514907-GDlZqXpw";
-                event.reply(`line://app/${liff}`);
+            if (/^[!！]結單/.test(text)) {
+                let userData;
+                if (event.source.type == 'room') {
+                    userData = await bot.getRoomMemberProfile(room_id, user_id)
+                } else if (event.source.type == 'group') {
+                    userData = await bot.getGroupMemberProfile(group_id, user_id)
+                } else {
+                    userData = await bot.getUserProfile(user_id);
+                }
+                let bodyData = new FormData();
+                bodyData.append('name', userData.displayName);
+                bodyData.append('method', 'endTab');
+                let res = await axios.post('https://script.google.com/macros/s/AKfycbxF8ZEohmFDzebTWpSq6v-RGIOA7pVhxGc04D28Mw8Ku03g5FA/exec', bodyData, {
+                    headers: bodyData.getHeaders(),
+                });
+                console.log(res.data);
+                if (res.data.success) {
+                    event.reply('結單完成\nhttps://docs.google.com/spreadsheets/d/1hKTLKZmRrYs_y0gwayilD492iEOk4MgQn83jroTL1C4/edit?usp=sharing');
+                }
             }
             
-            // if (user_id == "Uefa04a3428324659086b899f71dfb3e7" && /^群推$/.test(text)) {
-            //     console.log("hi!!!!!");
-            //     bot.push("Ccac311e33631a6da07f2c064781772ec", {
-            //         "type": "text",
-            //         "text": "群波"
-            //     });
-            // }
+            if (/^[!！]名單/.test(text)) {
+                event.reply('https://docs.google.com/spreadsheets/d/1hKTLKZmRrYs_y0gwayilD492iEOk4MgQn83jroTL1C4/edit?usp=sharing')
+            }
+            if (/^[!！]trx/i.test(text)) { 
+                var newStr = text.replace(/[!！]trx/ig, '');
+                if (/規則/.test(newStr)) {
+                    const roleStr = '!起床 => 我有可能會休眠，所以記得叫我起床\n\n!trx {時間} +{人數}\n範例：!trx 6/19(三) +1\n\n!trx 名單 => 可查看名單\n\n!trx 我對不起社會大眾,請讓我翹課 => 取消預約'
+                    event.reply(roleStr);
+                }
+                if (/名單/.test(newStr)) {
+                    event.reply('https://docs.google.com/spreadsheets/d/1lKXoQrymYnH_i2S8e7MjMR9FErWkzVmJaQgjJcDWcg0/edit?usp=sharing');
+                }
+                if (/[+＋]\d+/.test(newStr)) {
+                    let userData;
+                    if (event.source.type == 'room') {
+                        userData = await bot.getRoomMemberProfile(room_id, user_id)
+                    } else if (event.source.type == 'group') {
+                        userData = await bot.getGroupMemberProfile(group_id, user_id)
+                    } else {
+                        userData = await bot.getUserProfile(user_id);            
+                    }
+                    let datas = newStr.replace(/[+＋]/, '').split(/\s+/);
+                    
+                    let bodyData = new FormData();
+                    bodyData.append('name', userData.displayName);
+                    bodyData.append('date', datas[1]);
+                    bodyData.append('num', datas[2]);
+                    let res = await axios.post('https://script.google.com/macros/s/AKfycbwwC--_39aBvQJ5u8dPTlUCYtIeGL-QGh7Y-p21afQhD3HcLpNh/exec', bodyData, {
+                        headers: bodyData.getHeaders(),
+                    });
+                    console.log(res.data);
+                    if (res.data.length > 1) {
+                        event.reply('更新成功')
+                    } else if (res.data.length > 0) {
+                        event.reply('報名成功')
+                    }
+                }
+                if (/我對不起社會大眾[\s,，]請讓我翹課/.test(newStr)) {
+                    let userData;
+                    if (event.source.type == 'room') {
+                        userData = await bot.getRoomMemberProfile(room_id, user_id)
+                    } else if (event.source.type == 'group') {
+                        userData = await bot.getGroupMemberProfile(group_id, user_id)
+                    } else {
+                        userData = await bot.getUserProfile(user_id);
+                    }
+                    let bodyData = new FormData();
+                    bodyData.append('name', userData.displayName);
+                    bodyData.append('method', 'delUser');
+                    let res = await axios.post('https://script.google.com/macros/s/AKfycbwwC--_39aBvQJ5u8dPTlUCYtIeGL-QGh7Y-p21afQhD3HcLpNh/exec', bodyData, {
+                        headers: bodyData.getHeaders(),
+                    });
+                    console.log(res.data);
+                    if (res.data.length > 0) {
+                        event.reply('翹課完成');
+                    } else {
+                        event.reply('你沒有報名喔！')
+                    }
+                }
+            }
         }
     }
     catch (err) {
         console.error(err);
+        console.re.debug(err);
+        event.reply('系統錯誤')
     }
 });
 
 app.set('port', (process.env.PORT || 5000));
 app.listen(app.get("port"), function () {
-    console.log("running on port ", app.get("port"));
+    console.log("running on port %s version：%s ", app.get("port"),version);
 })
