@@ -1,3 +1,4 @@
 node_modules/
 config.js
 文件/
+.env*
