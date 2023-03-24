@@ -264,7 +264,7 @@ bot.on('message', async function (event) {
     catch (err) {
         console.error(err);
         console.re.debug(err);
-        event.reply('系統錯誤')
+        event.reply('系統錯誤')  
     }
 });
 
